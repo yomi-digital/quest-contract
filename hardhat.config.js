@@ -12,6 +12,9 @@ let hardhatConfigs = {
     polygon: {
       url: provider
     },
+    rinkeby: {
+      url: provider
+    },
     mainnet: {
       url: provider
     }

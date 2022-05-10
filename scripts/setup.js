@@ -10,9 +10,9 @@ async function main() {
     let wallet = new ethers.Wallet(configs.owner_key).connect(provider)
     const contract = new ethers.Contract(configs.contract_address, ABI.abi, wallet)
     // Setting up 5 different games, all the same to test
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i <= 0; i++) {
         const game = i
-        const quest = ["HELLO", "WORLD", "YOMI"]
+        const quest = ["HELLO", "WORLD"]
         const leaves = await quest.map((x) => keccak256(x));
         const game_instructions = 'ipfs://SomethingOnIPFS'
         const tree = await new MerkleTree(leaves, keccak256, {
@@ -20,7 +20,7 @@ async function main() {
         });
         const root = tree.getRoot().toString("hex");
         const price = ethers.utils.parseEther((i * 1).toString())
-        const result = await contract.setupGame(game, "0x" + root, quest.length, price, game_instructions);
+        const result = await contract.setupGame(game, "0x" + root, quest.length, game_instructions, price);
         console.log(result)
     }
 }

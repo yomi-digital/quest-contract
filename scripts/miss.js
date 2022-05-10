@@ -14,7 +14,7 @@ async function main() {
 
     // Playing same game level
     const game = await contract.levels(wallet.address)
-    const quest = ["HELLO", "WORLD", "YOMI"]
+    const quest = ["HELLO", "WORLD"]
     const solution = "WRONGSOLUTION"
 
     const price = await contract.game_prices(game)

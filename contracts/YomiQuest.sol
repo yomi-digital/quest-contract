@@ -20,10 +20,11 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
     bool public game_active = true;
     Counters.Counter private token_id_counter;
     uint256 public MAX_LIVES = 20;
-    uint256 public BIRTH_FEE = 1 ether;
+    uint256 public BIRTH_FEE = 0.0001 ether;
     mapping(uint256 => bytes32) public game_roots;
     mapping(uint256 => uint256) public game_words;
     mapping(uint256 => uint256) public game_prices;
+    mapping(uint256 => string) public game_instructions;
     mapping(uint256 => uint256) public nft_kind;
     mapping(address => uint256) public lives;
     mapping(address => uint256) public birthdays;
@@ -111,14 +112,16 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
         This method will allow owner to set the merkle root
     */
     function setupGame(
-        bytes32 _root,
         uint256 _game,
+        bytes32 _root,
         uint256 _words,
+        string memory _instructions,
         uint256 _price
     ) external onlyOwner {
         game_roots[_game] = _root;
         game_words[_game] = _words;
         game_prices[_game] = _price;
+        game_instructions[_game] = _instructions;
     }
 
     /*

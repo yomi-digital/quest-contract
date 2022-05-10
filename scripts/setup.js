@@ -14,12 +14,13 @@ async function main() {
         const game = i
         const quest = ["HELLO", "WORLD", "YOMI"]
         const leaves = await quest.map((x) => keccak256(x));
+        const game_instructions = 'ipfs://SomethingOnIPFS'
         const tree = await new MerkleTree(leaves, keccak256, {
             sortPairs: true,
         });
         const root = tree.getRoot().toString("hex");
         const price = ethers.utils.parseEther((i * 1).toString())
-        const result = await contract.setupGame("0x" + root, game, quest.length, price);
+        const result = await contract.setupGame(game, "0x" + root, quest.length, price, game_instructions);
         console.log(result)
     }
 }

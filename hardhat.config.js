@@ -6,10 +6,10 @@ let hardhatConfigs = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {},
-    rinkeby: {
+    mumbai: {
       url: provider
     },
-    ropsten: {
+    polygon: {
       url: provider
     },
     mainnet: {

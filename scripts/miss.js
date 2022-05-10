@@ -8,17 +8,17 @@ async function main() {
     const configs = JSON.parse(fs.readFileSync(process.env.CONFIG).toString())
     const ABI = JSON.parse(fs.readFileSync('./artifacts/contracts/' + configs.contract_name + '.sol/' + configs.contract_name + '.json').toString())
     const provider = new ethers.providers.JsonRpcProvider(configs.provider);
-    let wallet = new ethers.Wallet.fromMnemonic(configs.owner_mnemonic, "m/44'/60'/0'/0/4").connect(provider)
+    let wallet = new ethers.Wallet.fromMnemonic(configs.owner_mnemonic, "m/44'/60'/0'/0/3").connect(provider)
     const contract = new ethers.Contract(configs.contract_address, ABI.abi, wallet)
     console.log('Using address:', wallet.address)
 
     // Playing same game level
     const game = await contract.levels(wallet.address)
     const quest = ["HELLO", "WORLD", "YOMI"]
-    const solution = "WORLD"
+    const solution = "WRONGSOLUTION"
 
     const price = await contract.game_prices(game)
-    console.log('Trying to solve with price: ' + ethers.utils.formatEther(price) + ' ETH')
+    console.log('Voluntary missing: ' + ethers.utils.formatEther(price) + ' ETH')
 
     let leaves = await quest.map((x) => keccak256(x));
     let tree = await new MerkleTree(leaves, keccak256, {

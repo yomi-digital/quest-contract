@@ -9,15 +9,19 @@ async function main() {
     const provider = new ethers.providers.JsonRpcProvider(configs.provider);
     let wallet = new ethers.Wallet(configs.owner_key).connect(provider)
     const contract = new ethers.Contract(configs.contract_address, ABI.abi, wallet)
-    const game = 1
-    const quest = ["HELLO WORLD", "YOMI"]
-    let leaves = await quest.map((x) => keccak256(x));
-    let tree = await new MerkleTree(leaves, keccak256, {
-        sortPairs: true,
-    });
-    let root = tree.getRoot().toString("hex");
-    const result = await contract.setupGame("0x" + root, game, quest.length)
-    console.log(result)
+    // Setting up 5 different games, all the same to test
+    for (let i = 0; i < 5; i++) {
+        const game = i
+        const quest = ["HELLO", "WORLD", "YOMI"]
+        const leaves = await quest.map((x) => keccak256(x));
+        const tree = await new MerkleTree(leaves, keccak256, {
+            sortPairs: true,
+        });
+        const root = tree.getRoot().toString("hex");
+        const price = ethers.utils.parseEther((i * 1).toString())
+        const result = await contract.setupGame("0x" + root, game, quest.length, price);
+        console.log(result)
+    }
 }
 
 main()

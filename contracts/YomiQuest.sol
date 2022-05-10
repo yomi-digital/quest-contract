@@ -19,16 +19,18 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     bool public game_active = true;
     Counters.Counter private token_id_counter;
-    uint256 public round_price = 0.01 ether;
     uint256 public MAX_LIVES = 20;
+    uint256 public BIRTH_FEE = 1 ether;
     mapping(uint256 => bytes32) public game_roots;
     mapping(uint256 => uint256) public game_words;
-    mapping(uint256 => uint256) public solved_nfts;
+    mapping(uint256 => uint256) public game_prices;
+    mapping(uint256 => uint256) public nft_kind;
     mapping(address => uint256) public lives;
     mapping(address => uint256) public birthdays;
     mapping(uint256 => address) public winners;
     mapping(uint256 => uint256) public losers;
     mapping(address => uint256) public vaults;
+    mapping(address => uint256) public levels;
     string public contract_base_uri;
     address public vault_address;
 
@@ -71,11 +73,11 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
             uint256[] memory result = new uint256[](tokenCount);
             uint256 totalTkns = totalSupply();
             uint256 resultIndex = 0;
-            uint256 tnkId;
+            uint256 tknId;
 
-            for (tnkId = 1; tnkId <= totalTkns; tnkId++) {
-                if (ownerOf(tnkId) == _owner) {
-                    result[resultIndex] = tnkId;
+            for (tknId = 1; tknId <= totalTkns; tknId++) {
+                if (_exists(tknId) && ownerOf(tknId) == _owner) {
+                    result[resultIndex] = tknId;
                     resultIndex++;
                 }
             }
@@ -98,13 +100,6 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
     }
 
     /*
-        This method will allow owner to fix the minting price
-    */
-    function fixPrice(uint256 _price) external onlyOwner {
-        round_price = _price;
-    }
-
-    /*
         This method will allow owner to change the gnosis safe wallet
     */
     function fixVault(address _newAddress) external onlyOwner {
@@ -118,19 +113,27 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
     function setupGame(
         bytes32 _root,
         uint256 _game,
-        uint256 _words
+        uint256 _words,
+        uint256 _price
     ) external onlyOwner {
         game_roots[_game] = _root;
         game_words[_game] = _words;
+        game_prices[_game] = _price;
     }
 
     /*
         This method will allow owner to subscribe to game
     */
-    function subscribe() external {
+    function subscribe() external payable nonReentrant {
+        require(msg.value == BIRTH_FEE && msg.value > 0, "Need to pay birth fee");
         require(birthdays[msg.sender] == 0, "You exists yet");
         birthdays[msg.sender] = block.timestamp;
-        lives[msg.sender] = MAX_LIVES;
+        vaults[vault_address] += msg.value;
+        for (uint256 i = 0; i < 20; i++) {
+            token_id_counter.increment();
+            uint256 id = token_id_counter.current();
+            _mint(msg.sender, id);
+        }
     }
 
     /*
@@ -139,36 +142,51 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
     function solveGame(
         uint256 _game,
         bytes32[] calldata _merkleProof,
-        string memory _solution
+        string memory _solution,
+        uint256 _tokenId
     ) external payable nonReentrant {
+        uint256 round_price = game_prices[_game];
         require(game_active, "Game is not active");
         require(game_words[_game] > 0, "Game doesn't exists");
-        require(msg.value % round_price == 0, "Need to insert coin to play");
         require(birthdays[msg.sender] > 0, "Must born first");
-        require(lives[msg.sender] > 0, "Sorry, you died");
+        require(
+            ownerOf(_tokenId) == msg.sender,
+            "Sorry, you must own that NFT"
+        );
+        require(
+            levels[msg.sender] == _game,
+            "You must be at the same level of the game"
+        );
         bytes32 leaf = keccak256(abi.encodePacked(_solution));
         bool solved = MerkleProof.verify(_merkleProof, game_roots[_game], leaf);
         if (solved) {
-            // Returning funds back to user if is the first winner
-            if (winners[_game] == address(0)) {
-                vaults[msg.sender] += round_price;
-            } else {
-                // Otherwise split half of the payment with first winner
-                vaults[msg.sender] += round_price / 2;
-                vaults[winners[_game]] += round_price / 2;
+            if (_game > 0) {
+                require(
+                    msg.value == round_price && msg.value > 0,
+                    "Need to send exact amount to play"
+                );
+                // Returning funds back to user if is the first winner
+                // and setup it for future royalties
+                if (winners[_game] == address(0)) {
+                    winners[_game] = msg.sender;
+                    vaults[msg.sender] += round_price;
+                } else {
+                    // Otherwise split half of the payment with first winner
+                    vaults[msg.sender] += round_price / 2;
+                    vaults[winners[_game]] += round_price / 2;
+                }
             }
             token_id_counter.increment();
             uint256 id = token_id_counter.current();
             // Connect solved games to nft to adjust metadata
-            solved_nfts[id] = _game;
+            nft_kind[id] = _game;
+            // Mint related NFT
             _mint(msg.sender, id);
-            // Setup first winner here, it will take life time royalties
-            if (winners[_game] == address(0)) {
-                winners[_game] = msg.sender;
-            }
+            // Update user's level
+            levels[msg.sender]++;
         } else {
-            // If solution not found, remove lives
-            lives[msg.sender]--;
+            // If solution not found, burn the NFT
+            _burn(_tokenId);
             losers[_game]++;
             // All funds to game vault if game is not solved
             if (winners[_game] == address(0)) {

@@ -9,7 +9,8 @@ async function main() {
     for (let i = 2; i <= 5; i++) {
         let wallet = new ethers.Wallet.fromMnemonic(configs.owner_mnemonic, "m/44'/60'/0'/0/" + i).connect(provider)
         const contract = new ethers.Contract(configs.contract_address, ABI.abi, wallet)
-        const result = await contract.subscribe()
+        const price = await contract.BIRTH_FEE()
+        const result = await contract.subscribe({ value: price })
         console.log(result)
     }
 }

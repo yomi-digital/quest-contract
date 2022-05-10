@@ -11,12 +11,14 @@ async function main() {
     const supply = await contract.totalSupply()
     console.log('Total supply is:', supply.toString())
     for (let i = 1; i <= parseInt(supply.toString()); i++) {
+        console.log('Analyzing token id:', i)
         const ownerOf = await contract.ownerOf(i)
         console.log('Owner is:', ownerOf)
         const tokenURI = await contract.tokenURI(i)
         console.log('Token URI is:', tokenURI)
-        const solved = await contract.solved_nfts(i)
-        console.log('Relative solved game is:', solved.toString())
+        const nft_kind = await contract.nft_kind(i)
+        console.log('NFT kind is:', nft_kind.toString())
+        console.log('--')
     }
 }
 

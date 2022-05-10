@@ -14,7 +14,7 @@ async function main() {
         const game = i
         const quest = ["HELLO", "WORLD"]
         const leaves = await quest.map((x) => keccak256(x));
-        const game_instructions = 'ipfs://SomethingOnIPFS'
+        const game_instructions = 'ipfs://bafkreibc24qtzyrntqpnyot3u7l2ivu2akacl26vfv2o6y2c2p735zyav4'
         const tree = await new MerkleTree(leaves, keccak256, {
             sortPairs: true,
         });

@@ -1,0 +1,28 @@
+const { ethers, utils } = require("ethers");
+const fs = require('fs');
+const { generate, derive } = require('../libs/address_generator')
+
+async function main() {
+    const configs = JSON.parse(fs.readFileSync(process.env.CONFIG).toString())
+    const ABI = JSON.parse(fs.readFileSync('./artifacts/contracts/' + configs.contract_name + '.sol/' + configs.contract_name + '.json').toString())
+    const provider = new ethers.providers.JsonRpcProvider(configs.provider);
+    const owner = new ethers.Wallet(configs.owner_key).connect(provider)
+    const contract = new ethers.Contract(configs.contract_address, ABI.abi, owner)
+    const supply = await contract.totalSupply()
+    console.log('Total supply is:', supply.toString())
+    for (let i = 1; i <= parseInt(supply.toString()); i++) {
+        const ownerOf = await contract.ownerOf(i)
+        console.log('Owner is:', ownerOf)
+        const tokenURI = await contract.tokenURI(i)
+        console.log('Token URI is:', tokenURI)
+        const solved = await contract.solved_nfts(i)
+        console.log('Relative solved game is:', solved.toString())
+    }
+}
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });

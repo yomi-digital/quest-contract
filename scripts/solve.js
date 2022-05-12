@@ -14,8 +14,8 @@ async function main() {
 
     // Playing same game level
     const game = await contract.levels(wallet.address)
-    const quest = ["HELLO", "WORLD"]
-    const solution = "WORLD"
+    const quest = ["HELLO", "FRIEND"]
+    const solution = "FRIEND"
 
     const price = await contract.game_prices(game)
     console.log('Trying to solve with price: ' + ethers.utils.formatEther(price) + ' ETH')

@@ -12,7 +12,7 @@ async function main() {
     // Setting up 5 different games, all the same to test
     for (let i = 0; i <= 0; i++) {
         const game = i
-        const quest = ["HELLO", "WORLD"]
+        const quest = ["HELLO", "FRIEND"]
         const leaves = await quest.map((x) => keccak256(x));
         const game_instructions = 'ipfs://bafkreibc24qtzyrntqpnyot3u7l2ivu2akacl26vfv2o6y2c2p735zyav4'
         const tree = await new MerkleTree(leaves, keccak256, {

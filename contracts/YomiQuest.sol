@@ -152,6 +152,7 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
         require(game_active, "Game is not active");
         require(game_words[_game] > 0, "Game doesn't exists");
         require(birthdays[msg.sender] > 0, "Must born first");
+        require(nft_kind[_tokenId] == 0, "NFT is not a coin");
         require(
             ownerOf(_tokenId) == msg.sender,
             "Sorry, you must own that NFT"
@@ -181,12 +182,11 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
             }
             token_id_counter.increment();
             uint256 id = token_id_counter.current();
+            levels[msg.sender]++;
             // Connect solved games to nft to adjust metadata
-            nft_kind[id] = _game;
+            nft_kind[id] = levels[msg.sender];
             // Mint related NFT
             _mint(msg.sender, id);
-            // Update user's level
-            levels[msg.sender]++;
         } else {
             // If solution not found, burn the NFT
             _burn(_tokenId);

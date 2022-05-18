@@ -9,6 +9,9 @@ let hardhatConfigs = {
     mumbai: {
       url: provider
     },
+    neon: {
+      url: provider
+    },
     polygon: {
       url: provider
     },

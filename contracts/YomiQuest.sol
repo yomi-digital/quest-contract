@@ -164,7 +164,7 @@ contract YomiQuest is ERC721, Ownable, ReentrancyGuard {
         bytes32 leaf = keccak256(abi.encodePacked(_solution));
         bool solved = MerkleProof.verify(_merkleProof, game_roots[_game], leaf);
         if (solved) {
-            if (_game > 0) {
+            if (round_price > 0) {
                 require(
                     msg.value == round_price && msg.value > 0,
                     "Need to send exact amount to play"
